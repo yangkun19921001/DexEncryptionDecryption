@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/DexDEApplication.iml" filepath="$PROJECT_DIR$/DexDEApplication.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/proxy_core/proxy_core.iml" filepath="$PROJECT_DIR$/proxy_core/proxy_core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/proxy_tools/proxy_tools.iml" filepath="$PROJECT_DIR$/proxy_tools/proxy_tools.iml" />
+    </modules>
+  </component>
+</project>
