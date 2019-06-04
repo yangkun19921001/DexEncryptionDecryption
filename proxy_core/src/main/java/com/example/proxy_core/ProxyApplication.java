@@ -128,6 +128,110 @@ public class ProxyApplication extends Application {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 开始替换application
+     */
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        try {
+            bindRealApplicatin();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    boolean isBindReal;
+    Application delegate;
+    private void bindRealApplicatin() throws Exception {
+        if (isBindReal) {
+            return;
+        }
+        if (TextUtils.isEmpty(app_name)) {
+            return;
+        }
+        //得到attachBaseContext(context) 传入的上下文 ContextImpl
+        Context baseContext = getBaseContext();
+        //创建用户真实的application (MyApplication)
+        Class<?> delegateClass = Class.forName(app_name);
+        delegate = (Application) delegateClass.newInstance();
+        //得到attach()方法
+        Method attach = Application.class.getDeclaredMethod("attach", Context.class);
+        attach.setAccessible(true);
+        attach.invoke(delegate, baseContext);
+
+
+//        ContextImpl---->mOuterContext(app)   通过Application的attachBaseContext回调参数获取
+        Class<?> contextImplClass = Class.forName("android.app.ContextImpl");
+        //获取mOuterContext属性
+        Field mOuterContextField = contextImplClass.getDeclaredField("mOuterContext");
+        mOuterContextField.setAccessible(true);
+        mOuterContextField.set(baseContext, delegate);
+
+//        ActivityThread--->mAllApplications(ArrayList)       ContextImpl的mMainThread属性
+        Field mMainThreadField = contextImplClass.getDeclaredField("mMainThread");
+        mMainThreadField.setAccessible(true);
+        Object mMainThread = mMainThreadField.get(baseContext);
+
+//        ActivityThread--->>mInitialApplication
+        Class<?> activityThreadClass=Class.forName("android.app.ActivityThread");
+        Field mInitialApplicationField = activityThreadClass.getDeclaredField("mInitialApplication");
+        mInitialApplicationField.setAccessible(true);
+        mInitialApplicationField.set(mMainThread,delegate);
+//        ActivityThread--->mAllApplications(ArrayList)       ContextImpl的mMainThread属性
+        Field mAllApplicationsField = activityThreadClass.getDeclaredField("mAllApplications");
+        mAllApplicationsField.setAccessible(true);
+        ArrayList<Application> mAllApplications =(ArrayList<Application>) mAllApplicationsField.get(mMainThread);
+        mAllApplications.remove(this);
+        mAllApplications.add(delegate);
+
+//        LoadedApk------->mApplication                      ContextImpl的mPackageInfo属性
+        Field mPackageInfoField = contextImplClass.getDeclaredField("mPackageInfo");
+        mPackageInfoField.setAccessible(true);
+        Object mPackageInfo=mPackageInfoField.get(baseContext);
+
+        Class<?> loadedApkClass=Class.forName("android.app.LoadedApk");
+        Field mApplicationField = loadedApkClass.getDeclaredField("mApplication");
+        mApplicationField.setAccessible(true);
+        mApplicationField.set(mPackageInfo,delegate);
+
+        //修改ApplicationInfo className   LooadedApk
+        Field mApplicationInfoField = loadedApkClass.getDeclaredField("mApplicationInfo");
+        mApplicationInfoField.setAccessible(true);
+        ApplicationInfo mApplicationInfo = (ApplicationInfo)mApplicationInfoField.get(mPackageInfo);
+        mApplicationInfo.className=app_name;
+
+        delegate.onCreate();
+        isBindReal = true;
+    }
+
+    /**
+     * 让代码走入if中的第三段中
+     * @return
+     */
+    @Override
+    public String getPackageName() {
+        if(!TextUtils.isEmpty(app_name)){
+            return "";
+        }
+        return super.getPackageName();
+    }
+
+    @Override
+    public Context createPackageContext(String packageName, int flags) throws PackageManager.NameNotFoundException {
+        if(TextUtils.isEmpty(app_name)){
+            return super.createPackageContext(packageName, flags);
+        }
+        try {
+            bindRealApplicatin();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return delegate;
+
+    }
 }
 
 

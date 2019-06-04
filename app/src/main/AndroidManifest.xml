@@ -21,6 +21,17 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".MyService"/>
+        <receiver android:name=".MyBroadCastReciver">
+            <intent-filter>
+                <action android:name="com.yk.dexdeapplication_devyk"/>
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:authorities="com.yk.dexdeapplication.MyProvider"
+            android:name=".MyProvider"/>
+
 
         <!--真实的Application的全名-->
         <meta-data android:name="app_name" android:value="com.yk.dexdeapplication.App"/>
