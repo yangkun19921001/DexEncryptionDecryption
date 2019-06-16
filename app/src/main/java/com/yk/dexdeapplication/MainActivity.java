@@ -6,6 +6,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.Toast;
+
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -15,9 +18,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        Log.i("DevYK","activity:"+getApplication());
-        Log.i("DevYK","activity:"+getApplicationContext());
-        Log.i("DevYK","activity:"+getApplicationInfo().className);
+        Log.i("DevYK", "activity:" + getApplication());
+        Log.i("DevYK", "activity:" + getApplicationContext());
+        Log.i("DevYK", "activity:" + getApplicationInfo().className);
 
         startService(new Intent(this, MyService.class));
 
@@ -28,5 +31,10 @@ public class MainActivity extends AppCompatActivity {
 
         getContentResolver().delete(Uri.parse("content://com.yk.dexdeapplication.MyProvider"), null,
                 null);
+
+        DateUtils dateUtils = new DateUtils();
+        dateUtils.setCurrentDate(new Date());
+        Toast.makeText(getApplicationContext(), dateUtils.getCurrentDate(), Toast.LENGTH_SHORT).show();
+
     }
 }
