@@ -1,3 +1,4 @@
+[文章博客地址](https://juejin.im/post/5cf3ee295188256aa76bb1e1)
 ## 简介
 
 现在随意在应用市场下载一个 APK 文件然后反编译，95% 以上基本上都是经过混淆，加密，或第三方加固(第三方加固也是这个原理)，那么今天我们就对 Dex 来进行加密解密。让反编译无法正常阅读项目源码。
@@ -6,7 +7,8 @@
 
 **APK 分析**
 
-![](https://user-gold-cdn.xitu.io/2019/6/2/16b18db62c74de16?w=1773&h=601&f=jpeg&s=112641)
+![](https://user-gold-cdn.xitu.io/2019/6/3/16b18eeecfed7d98?w=1365&h=646&f=jpeg&s=104055)
+通过 AS 工具分析加密后的 APK 文件，查看 dex 是报错的，要的就是这个效果。
 
 **反编译效果**
 
@@ -51,7 +53,7 @@ Android 5.0（API 级别 21）及更高版本使用名为 ART 的运行时，后
    android {
        defaultConfig {
            ...
-           minSdkVersion 21
+           minSdkVersion 21 
            targetSdkVersion 28
            multiDexEnabled true
        }
@@ -67,13 +69,13 @@ Android 5.0（API 级别 21）及更高版本使用名为 ART 的运行时，后
      android {
          defaultConfig {
              ...
-             minSdkVersion 15
+             minSdkVersion 15 
              targetSdkVersion 28
              multiDexEnabled true
          }
          ...
      }
-
+     
      dependencies {
        compile 'com.android.support:multidex:1.0.3'
      }
@@ -144,7 +146,7 @@ Android 5.0（API 级别 21）及更高版本使用名为 ART 的运行时，后
            fos.flush();
            fos.close();
            dexFiles.add(file);
-
+   
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -164,15 +166,15 @@ Android 5.0（API 级别 21）及更高版本使用名为 ART 的运行时，后
            Object[] dexElements=(Object[])dexElementsField.get(pathList);
            //3.反射到初始化dexElements的方法
            Method makeDexElements=Utils.findMethod(pathList,"makePathElements",List.class,File.class,List.class);
-
+   
            ArrayList<IOException> suppressedExceptions = new ArrayList<IOException>();
            Object[] addElements=(Object[])makeDexElements.invoke(pathList,dexFiles,versionDir,suppressedExceptions);
-
+   
            //合并数组
            Object[] newElements= (Object[])Array.newInstance(dexElements.getClass().getComponentType(),dexElements.length+addElements.length);
            System.arraycopy(dexElements,0,newElements,0,dexElements.length);
            System.arraycopy(addElements,0,newElements,dexElements.length,addElements.length);
-
+   
            //替换 DexPathList 中的 element 数组
            dexElementsField.set(pathList,newElements);
        }
@@ -259,7 +261,7 @@ Android 5.0（API 级别 21）及更高版本使用名为 ART 的运行时，后
 
 ```java
 //apk整理对齐工具 未压缩的数据开头均相对于文件开头部分执行特定的字节对齐，减少应用运行内存。
-zipalign -f 4 in.apk out.apk
+zipalign -f 4 in.apk out.apk 
 
 //比对 apk 是否对齐
 zipalign -c -v 4 output.apk
@@ -286,6 +288,3 @@ apksigner sign  --ks jks文件地址 --ks-key-alias 别名 --ks-pass pass:jsk密
 其实原理就是把主要代码通过命令 *dx* 生成 dex 文件，然后把加密后的 dex 合并在代理 class.dex 中。这样虽然还是能看见代理中的代码，但是主要代码已经没有暴露出来了，就已经实现了我们想要的效果。如果封装的好的话（JNI 中实现主要解密代码），基本上就哈也看不见了。ClassLoader 还是很重要的，热修复跟热加载都是这原理。学到这里 DEX 加解密已经学习完了，如果想看自己试一试可以参考我的代码
 
 [代码传送阵](<https://github.com/yangkun19921001/DexEncryptionDecryption>)
-
-
-
