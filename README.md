@@ -289,5 +289,6 @@ apksigner sign  --ks jks文件地址 --ks-key-alias 别名 --ks-pass pass:jsk密
 
 [代码传送阵](<https://github.com/yangkun19921001/DexEncryptionDecryption>)
 
-**如果学习本项目:**
+**如何学习本项目:**
+
 ![](https://devyk.oss-cn-qingdao.aliyuncs.com/blog/20200321010522.gif)
