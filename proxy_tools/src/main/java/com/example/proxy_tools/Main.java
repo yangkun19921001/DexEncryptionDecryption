@@ -156,7 +156,7 @@ public class Main {
     public static void jksToApk() throws IOException, InterruptedException {
         // apksigner sign --ks my-release-key.jks --out my-app-release.apk my-app-unsigned-aligned.apk
         //apksigner sign  --ks jks文件地址 --ks-key-alias 别名 --ks-pass pass:jsk密码 --key-pass pass:别名密码 --out  out.apk in.apk
-        File signedApk = new File("app/build/outputs/apk/debug/app-signed-aligned.apk");
+        File signedApk = new File("app/release/app-signed-aligned.apk");
         File jks = new File("proxy_tools/dexjks.jks");
         File alignedApk = new File("app/build/outputs/apk/debug/app-unsigned-aligned.apk");
         //apksigner sign --ks D:\Downloads\android_space\DexDEApplication\proxy_tools\dexjks.jks --ks-key-alias yangkun --ks-pass pass:123123 --key-pass pass:123123 --out D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-signed-aligned.apk D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-unsigned-aligned.apk
