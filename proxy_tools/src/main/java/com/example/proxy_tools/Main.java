@@ -7,6 +7,26 @@ import java.io.IOException;
 
 public class Main {
 
+    /**
+     * 制作 Dex 命令
+     */
+    private static String DX_PATH = "/Users/devyk/Data/Android/SDK/build-tools/26.0.1/dx --dex --output ";
+
+    /**
+     * 制作 对齐 命令
+     */
+    private static String ZIPALIGN = "/Users/devyk/Data/Android/SDK/build-tools/26.0.1/zipalign -v -p  4 ";
+
+    /**
+     * 制作 签名打包 命令
+     */
+    private static String APKSIGNER = "/Users/devyk/Data/Android/SDK/build-tools/26.0.1/apksigner sign --ks ";
+
+    /**
+     * 记录执行制作 dex 的次数，第一次执行成功但是没有生成
+     */
+    private static int count = 0;
+
     public static void main(String[] args) throws Exception {
 
 
@@ -42,6 +62,7 @@ public class Main {
      * 1.制作只包含解密代码的dex文件
      */
     public static void makeDecodeDex() throws IOException, InterruptedException {
+        if (count >= 2) return;
         File aarFile = new File("proxy_core/build/outputs/aar/proxy_core-debug.aar");
         File aarTemp = new File("proxy_tools/temp");
         Zip.unZip(aarFile, aarTemp);
@@ -49,14 +70,19 @@ public class Main {
         File classesDex = new File(aarTemp, "classes.dex");
         //dx --dex --output out.dex in.jar
         //dx --dex --output D:\Downloads\android_space\DexDEApplication\proxy_tools\temp\classes.dex D:\Downloads\android_space\DexDEApplication\proxy_tools\temp\classes.jar
-        Process process = Runtime.getRuntime().exec("cmd /c dx --dex --output " + classesDex.getAbsolutePath()
+//       Windows 执行
+//       Process process = Runtime.getRuntime().exec("cmd /c dx --dex --output " + classesDex.getAbsolutePath()
+        //MAC 执行
+        Process process = Runtime.getRuntime().exec(DX_PATH + classesDex.getAbsolutePath()
                 + " " + classesJar.getAbsolutePath());
         process.waitFor();
         if (process.exitValue() != 0) {
             throw new RuntimeException("dex error");
         }
 
+        if (!classesDex.exists()) makeDecodeDex();
         System.out.println("makeDecodeDex--ok");
+        count++;
     }
 
     /**
@@ -109,8 +135,10 @@ public class Main {
         File unSignedApk = new File("app/build/outputs/apk/debug/app-unsigned.apk");
         // zipalign -v -p 4 my-app-unsigned.apk my-app-unsigned-aligned.apk
         File alignedApk = new File("app/build/outputs/apk/debug/app-unsigned-aligned.apk");
-        Process process = Runtime.getRuntime().exec("cmd /c zipalign -v -p  4 " + unSignedApk.getAbsolutePath()
-//        Process     process = Runtime.getRuntime().exec("cmd /c zipalign -f 4 " + unSignedApk.getAbsolutePath()
+        //Windows 执行
+//        Process process = Runtime.getRuntime().exec("cmd /c zipalign -v -p  4 " + unSignedApk.getAbsolutePath()
+        //MAC 执行
+        Process process = Runtime.getRuntime().exec(ZIPALIGN + unSignedApk.getAbsolutePath()
                 + " " + alignedApk.getAbsolutePath());
         process.waitFor();
 
@@ -133,13 +161,17 @@ public class Main {
         File alignedApk = new File("app/build/outputs/apk/debug/app-unsigned-aligned.apk");
         //apksigner sign --ks D:\Downloads\android_space\DexDEApplication\proxy_tools\dexjks.jks --ks-key-alias yangkun --ks-pass pass:123123 --key-pass pass:123123 --out D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-signed-aligned.apk D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-unsigned-aligned.apk
         //apksigner sign --ks my-release-key.jks --out my-app-release.apk my-app-unsigned-aligned.apk
-        Process process = Runtime.getRuntime().exec("cmd /c  apksigner sign --ks " + jks.getAbsolutePath()
+
+        //Windows 执行
+//        Process process = Runtime.getRuntime().exec("cmd /c  apksigner sign --ks " + jks.getAbsolutePath()
+        //MAC 执行
+        Process process = Runtime.getRuntime().exec(APKSIGNER + jks.getAbsolutePath()
                 + " --ks-key-alias yangkun --ks-pass pass:123123 --key-pass pass:123123 --out "
                 + signedApk.getAbsolutePath() + " " + alignedApk.getAbsolutePath());
         process.waitFor();
         if (process.exitValue() != 0) {
             throw new RuntimeException("dex error");
         }
-        System.out.println("jksToApk----> ok");
+        System.out.println("打包成功->" + signedApk.getAbsolutePath());
     }
 }
