@@ -44,13 +44,10 @@ public class Main {
          * 3.把dex放入apk解压目录，重新压成apk文件
          */
         makeApk();
-
-
         /**
          * 4.对齐
          */
         zipalign();
-
         /**
          * 5. 签名打包
          */
