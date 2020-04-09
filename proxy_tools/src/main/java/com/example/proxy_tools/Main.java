@@ -1,5 +1,9 @@
 package com.example.proxy_tools;
 
+import com.gmail.yang1001yk.utils.DexUtils;
+import com.gmail.yang1001yk.utils.EncryptUtil;
+import com.gmail.yang1001yk.utils.Zip;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
@@ -12,17 +16,17 @@ public class Main {
     /**
      * 制作 Dex 命令
      */
-    private static String DX_PATH = "/Users/devyk/Data/Android/SDK/build-tools/26.0.1/dx --dex --output ";
+    private static String DX_PATH = "/Users/Shared/sdk/build-tools/29.0.3/dx --dex --output ";
 
     /**
      * 制作 对齐 命令
      */
-    private static String ZIPALIGN = "/Users/devyk/Data/Android/SDK/build-tools/26.0.1/zipalign -v -p  4 ";
+    private static String ZIPALIGN = "/Users/Shared/sdk/build-tools/29.0.3/zipalign -v -p  4 ";
 
     /**
      * 制作 签名打包 命令
      */
-    private static String APKSIGNER = "/Users/devyk/Data/Android/SDK/build-tools/26.0.1/apksigner sign --ks ";
+    private static String APKSIGNER = "/Users/Shared/sdk/build-tools/29.0.3/apksigner sign --ks ";
 
     /**
      * 记录执行制作 dex 的次数，第一次执行成功但是没有生成
