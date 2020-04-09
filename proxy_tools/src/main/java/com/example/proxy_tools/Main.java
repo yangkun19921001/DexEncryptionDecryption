@@ -81,16 +81,16 @@ public class Main {
         File classesDex = new File(aarTemp, "classes.dex");
         //dx --dex --output out.dex in.jar
         //dx --dex --output D:\Downloads\android_space\DexDEApplication\proxy_tools\temp\classes.dex D:\Downloads\android_space\DexDEApplication\proxy_tools\temp\classes.jar
-        final String args = classesDex.getAbsolutePath() + " " + classesJar.getAbsolutePath();
+        //       Windows 执行
+//         Process process = Runtime.getRuntime().exec("cmd /c dx --dex --output " + classesDex.getAbsolutePath()+ " " + classesJar.getAbsolutePath());
         //MAC 执行
 //        Process process = Runtime.getRuntime().exec(DX_PATH + classesDex.getAbsolutePath() + " " + classesJar.getAbsolutePath());
-        Process process = Runtime.getRuntime().exec(DX_PATH + args);
+        final String args = classesDex.getAbsolutePath() + " " + classesJar.getAbsolutePath();
+        String command = DX_PATH + args;
         if (isWindwos) {
-//       Windows 执行
-//         Process process = Runtime.getRuntime().exec("cmd /c dx --dex --output " + classesDex.getAbsolutePath()+ " " + classesJar.getAbsolutePath());
-            process = Runtime.getRuntime().exec("cmd /c " + DX_PATH + args);
+            command = "cmd /c " + DX_PATH + args;
         }
-
+        final Process process = Runtime.getRuntime().exec(command);
         process.waitFor();
         if (process.exitValue() != 0) {
             throw new RuntimeException("dex error");
@@ -154,20 +154,19 @@ public class Main {
         File unSignedApk = new File("app/build/outputs/apk/debug/app-unsigned.apk");
         // zipalign -v -p 4 my-app-unsigned.apk my-app-unsigned-aligned.apk
         File alignedApk = new File("app/build/outputs/apk/debug/app-unsigned-aligned.apk");
-        final String args = unSignedApk.getAbsolutePath() + " " + alignedApk.getAbsolutePath();
+//zipalign -v -p 4 D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-unsigned.apk D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-unsigned-aligned.apk
+        //Windows 执行
+//        Process process = Runtime.getRuntime().exec("cmd /c zipalign -v -p  4 " + unSignedApk.getAbsolutePath()+ " " + alignedApk.getAbsolutePath());
         //MAC 执行
 //        Process process = Runtime.getRuntime().exec(ZIPALIGN + unSignedApk.getAbsolutePath() + " " + alignedApk.getAbsolutePath());
-        Process process = Runtime.getRuntime().exec(ZIPALIGN + args);
+        final String args = unSignedApk.getAbsolutePath() + " " + alignedApk.getAbsolutePath();
+        String command = ZIPALIGN + args;
         if (isWindwos) {
-            //Windows 执行
-//        Process process = Runtime.getRuntime().exec("cmd /c zipalign -v -p  4 " + unSignedApk.getAbsolutePath()+ " " + alignedApk.getAbsolutePath());
-            process = Runtime.getRuntime().exec("cmd /c " + ZIPALIGN + args);
+            command = "cmd /c " + ZIPALIGN + args;
         }
+        final Process process = Runtime.getRuntime().exec(command);
         process.waitFor();
-
-        //zipalign -v -p 4 D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-unsigned.apk D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-unsigned-aligned.apk
 //        System.out.println(process.waitFor() == 0 ? "zipalign成功" : "zipalign失败");
-
         System.out.println("zipalign---ok");
     }
 
@@ -188,15 +187,16 @@ public class Main {
         File alignedApk = new File("app/build/outputs/apk/debug/app-unsigned-aligned.apk");
         //apksigner sign --ks D:\Downloads\android_space\DexDEApplication\proxy_tools\dexjks.jks --ks-key-alias yangkun --ks-pass pass:123123 --key-pass pass:123123 --out D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-signed-aligned.apk D:\Downloads\android_space\DexDEApplication\app\build\outputs\apk\debug\app-unsigned-aligned.apk
         //apksigner sign --ks my-release-key.jks --out my-app-release.apk my-app-unsigned-aligned.apk
-        final String args = jks.getAbsolutePath() + " --ks-key-alias yangkun --ks-pass pass:123123 --key-pass pass:123123 --out " + signedApk.getAbsolutePath() + " " + alignedApk.getAbsolutePath();
+        //Windows 执行
+//        Process process = Runtime.getRuntime().exec("cmd /c  apksigner sign --ks " + jks.getAbsolutePath()
         //MAC 执行
 //        Process process = Runtime.getRuntime().exec(APKSIGNER + jks.getAbsolutePath() + " --ks-key-alias yangkun --ks-pass pass:123123 --key-pass pass:123123 --out " + signedApk.getAbsolutePath() + " " + alignedApk.getAbsolutePath());
-        Process process = Runtime.getRuntime().exec(APKSIGNER + args);
+        final String args = jks.getAbsolutePath() + " --ks-key-alias yangkun --ks-pass pass:123123 --key-pass pass:123123 --out " + signedApk.getAbsolutePath() + " " + alignedApk.getAbsolutePath();
+        String command = APKSIGNER + args;
         if (isWindwos) {
-            //Windows 执行
-//        Process process = Runtime.getRuntime().exec("cmd /c  apksigner sign --ks " + jks.getAbsolutePath()
-            process = Runtime.getRuntime().exec("cmd /c  " + APKSIGNER + args);
+            command = "cmd /c  " + APKSIGNER + args;
         }
+        final Process process = Runtime.getRuntime().exec(command);
         process.waitFor();
         if (process.exitValue() != 0) {
             throw new RuntimeException("dex error");
