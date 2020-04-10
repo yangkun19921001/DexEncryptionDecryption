@@ -1,6 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'application'
-
+//Ref : https://gist.github.com/rponte/d660919434d094bbd35a1aabf7ef1bf0
 gradle.projectsEvaluated {
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xbootclasspath/a:" + System.properties.get("java.home") + "/lib/rt.jar"
@@ -12,6 +12,8 @@ jar {
     baseName = 'proxy_tools'
     version =  '0.0.0'
     manifest {
+        attributes 'Main-Class': 'com.example.proxy_tools.Main', 'Implementation-Title': 'proxy_tools',
+                'Implementation-Version': version
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
@@ -26,8 +28,18 @@ sourceSets {
     }
 }
 
-sourceCompatibility = "1.8"
-targetCompatibility = "1.8"
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+tasks.withType(Test) {
+    systemProperty "file.encoding", "UTF-8"
+}
 
 configurations.all {
     resolutionStrategy.force 'com.google.code.findbugs:jsr305:3.0.2'
