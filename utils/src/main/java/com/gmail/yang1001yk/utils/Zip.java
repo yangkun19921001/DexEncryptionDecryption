@@ -11,7 +11,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-
 public class Zip {
 
     private static void deleteFile(File file){
@@ -138,5 +137,5 @@ public class Zip {
         fis.close();
         zos.closeEntry();
     }
-
 }
+

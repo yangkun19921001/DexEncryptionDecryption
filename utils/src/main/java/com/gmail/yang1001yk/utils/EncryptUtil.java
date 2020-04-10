@@ -1,6 +1,5 @@
 package com.gmail.yang1001yk.utils;
 
-
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
