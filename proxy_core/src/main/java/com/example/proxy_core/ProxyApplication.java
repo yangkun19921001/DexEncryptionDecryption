@@ -64,11 +64,9 @@ public class ProxyApplication extends Application {
                 if(name.endsWith(".dex") && !TextUtils.equals(name,"classes.dex")){
                     try{
                         //读取文件内容
-                        EncryptPKCS7Core encrypt = new EncryptPKCS7Core();
                         byte[] bytes= ProxyUtils.getBytes(file);
                         //5. 解密 dex
-//                        byte[] decrypt = EncryptUtil.decrypt(bytes,EncryptUtil.ivBytes);
-                        byte[] decrypt = encrypt.decrypt(bytes);
+                        byte[] decrypt = EncryptUtil.decrypt(bytes, EncryptUtil.ivBytes);
                         //写到指定的目录
                         FileOutputStream fos=new FileOutputStream(file);
                         fos.write(decrypt);
@@ -97,8 +95,6 @@ public class ProxyApplication extends Application {
         }catch (Exception e){
             e.printStackTrace();
         }
-
-
     }
 
     private void loadDex(List<File> dexFiles, File versionDir) throws Exception{
