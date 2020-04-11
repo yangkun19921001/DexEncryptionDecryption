@@ -13,7 +13,7 @@ import java.util.zip.ZipOutputStream;
 
 public class Zip {
 
-    private static void deleteFile(File file){
+    public static void deleteFile(File file){
         if (file.isDirectory()){
             File[] files = file.listFiles();
             for (File f: files) {
@@ -29,9 +29,11 @@ public class Zip {
      * @param zip
      * @param dir
      */
-    public static void unZip(File zip, File dir) {
+    public static void unZip(File zip, File dir,boolean isDel) {
         try {
-            deleteFile(dir);
+            if (isDel){
+                deleteFile(dir);
+            }
             ZipFile zipFile = new ZipFile(zip);
             //zip文件中每一个条目
             Enumeration<? extends ZipEntry> entries = zipFile.entries();

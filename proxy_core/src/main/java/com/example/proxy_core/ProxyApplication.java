@@ -59,7 +59,7 @@ public class ProxyApplication extends Application {
         //进行解密（最好做MD5文件校验）
         if(!dexDir.exists() || dexDir.list().length==0){
             //把apk解压到appDir
-            Zip.unZip(apkFile,appDir);
+            Zip.unZip(apkFile,appDir,false);
             //获取目录下所有的文件
             File[] files=appDir.listFiles();
             for (File file : files) {

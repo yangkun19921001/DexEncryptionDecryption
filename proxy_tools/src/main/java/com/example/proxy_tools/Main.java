@@ -5,9 +5,12 @@ import com.gmail.yang1001yk.utils.EncryptUtil;
 import com.gmail.yang1001yk.utils.Zip;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
     //Ref : https://stackoverflow.com/questions/228477/how-do-i-programmatically-determine-operating-system-in-java
@@ -29,6 +32,11 @@ public class Main {
     private static String APKSIGNER = "/Users/Shared/sdk/build-tools/29.0.3/apksigner sign --ks ";
 
     /**
+     * JAVA_HOME
+     */
+    private static String JAVA_HOME = "/Library/Java/JavaVirtualMachines/jdk1.8.0_181.jdk/Contents/Home/bin/";
+
+    /**
      * 记录执行制作 dex 的次数，第一次执行成功但是没有生成
      */
     private static int count = 0;
@@ -36,6 +44,9 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 //        System.getProperties().list(System.out);
+//        System.getenv("JAVA_HOME");
+//        String path = System.getenv("PATH");
+        JAVA_HOME = System.getenv("JAVA_HOME") + File.separator + "bin" + File.separator;
         final String osname = System.getProperty("os.name").toLowerCase();
         if (osname.contains("windows")) {
             isWindwos = true;
@@ -43,10 +54,16 @@ public class Main {
             ZIPALIGN = "D:\\SDK\\build-tools\\29.0.3\\zipalign -v -p  4 ";
             APKSIGNER = "D:\\SDK\\build-tools\\29.0.3\\apksigner sign --ks ";
         }
+
+        /**
+         * 1. 多个 jar 合并在一起，目的是制作 dex 文件
+         */
+        mergeJar();
+
         /**
          * 1.制作只包含解密代码的dex文件
          */
-        makeDecodeDex();
+        makeDecodeDex("proxy_tools/temp/classes.jar", "classes.jar", "proxy_tools/temp/", "classes.dex");
 
         /**
          * 2.加密APK中所有的dex文件
@@ -67,25 +84,99 @@ public class Main {
         jksToApk();
     }
 
+    /**
+     * 这一步的目的是因为打包 utils 的时候没有将 utils.jar makeDex , 所以我们不能直接加载 class 的 jar ，而是需要将 class 转化成 dex 字节码。
+     * 不然 utils 包下的 class 都会报 ClassNotFoundException
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    private static void mergeJar() throws IOException, InterruptedException {
+        System.out.println("start merge jar");
+//        File file = new File("proxy_tools/temp/");
+        File file = new File(File.separator + "proxy_tools" + File.separator + "temp" + File.separator);
+        if (file.exists())
+            file.delete();
+        file.mkdir();
+        Path currentrelativepath = Paths.get("");
+
+        File projectpath = new File(currentrelativepath.toAbsolutePath().toString());
+        File curLocation = new File(projectpath + File.separator + "proxy_tools" + File.separator + "temp");
+        //Ref : https://stackoverflow.com/questions/4871051/getting-the-current-working-directory-in-java
+
+        /**
+         * 1.1 解压 dependencies 的 aar / jar
+         */
+        unZipFile(projectpath + File.separator + "utils" + File.separator + "build" + File.separator + "libs" + File.separator + "utils-0.1.0.jar", projectpath + File.separator + "proxy_tools" + File.separator + "temp" + File.separator);
+
+        /**
+         * 1.2. 解压 core 库
+         */
+//        unZipFile("proxy_core/build/outputs/aar/proxy_core-debug.aar", "proxy_tools/temp/");
+        unZipFile(projectpath + File.separator + "proxy_core" + File.separator + "build" + File.separator + "outputs" + File.separator + "aar" + File.separator + "proxy_core-debug.aar", projectpath + File.separator + "proxy_tools" + File.separator + "temp");
+//
+//        /**
+//         * 1.3 解压核心 jar 目的是为了将 core jar 和 工具包 jar 合并一个 jar
+//         */
+        unZipFile(projectpath + File.separator + "proxy_tools" + File.separator + "temp" + File.separator + "classes.jar", projectpath + File.separator + "proxy_tools" + File.separator + "temp");
+//
+//        /**
+//         * 1.4 解压完成，需要删除 jar ,目的为了合并
+//         */
+        Zip.deleteFile(new File(projectpath + File.separator + "proxy_tools" + File.separator + "temp" + File.separator + "classes.jar"));
+
+        /**
+         * 1.5 开始合并
+         * 第三个参数指定在 temp 下执行打包
+         *
+         * #!/bin/bash
+         *
+         * echo "start make jar"
+         *
+         * jar -cvfM classes.jar .
+         *
+         * echo "make jar successful"
+         */
+        //Ref : https://stackoverflow.com/questions/22414646/cannot-run-program-when-using-runtime-exec-with-spaces-in-program-filename
+        final Process process = Runtime.getRuntime().exec(JAVA_HOME + "jar -cvfM classes.jar .", null, curLocation.getAbsoluteFile());
+        process.waitFor();
+        if (process.exitValue() != 0) {
+            throw new RuntimeException("make jar error");
+        }
+        System.out.println("merge jar successful!");
+    }
+
+    private static void unZipFile(String jarPath, String tempFilePath) throws FileNotFoundException {
+        File unZipFile = new File(jarPath);
+        File tempFile = new File(tempFilePath);
+        checkFile(unZipFile, tempFile);
+        Zip.unZip(unZipFile, tempFile, false);
+    }
+
+    private static void checkFile(File unZipFile, File tempFile) throws FileNotFoundException {
+        if (!unZipFile.exists() || !tempFile.exists())
+            throw new FileNotFoundException(unZipFile.getAbsolutePath() + " or " + tempFile.getAbsolutePath());
+    }
 
     /**
      * 1.制作只包含解密代码的dex文件
      */
-    public static void makeDecodeDex() throws IOException, InterruptedException {
+    public static void makeDecodeDex(String jarPath, String jarName, String dexPath, String dexName) throws IOException, InterruptedException {
         if (count >= 2) return;
         System.out.println("makeDecodeDex start");
-        File aarFile = new File("proxy_core/build/outputs/aar/proxy_core-debug.aar");
-        File aarTemp = new File("proxy_tools/temp");
-        Zip.unZip(aarFile, aarTemp);
-        File classesJar = new File(aarTemp, "classes.jar");
-        File classesDex = new File(aarTemp, "classes.dex");
+        File classesJar = new File(jarPath);
+        File classesDex = new File(dexPath);
+        System.out.println("classesJar : " + classesJar.getAbsolutePath() + "_____ : " + classesJar.exists());
+        System.out.println("classesDex : " + classesDex.getAbsolutePath() + "_____ : " + classesDex.exists());
+        System.out.println("makeDecodeDex checkFile");
+        checkFile(classesJar, classesDex);
         //dx --dex --output out.dex in.jar
         //dx --dex --output D:\Downloads\android_space\DexDEApplication\proxy_tools\temp\classes.dex D:\Downloads\android_space\DexDEApplication\proxy_tools\temp\classes.jar
         //       Windows 执行
 //         Process process = Runtime.getRuntime().exec("cmd /c dx --dex --output " + classesDex.getAbsolutePath()+ " " + classesJar.getAbsolutePath());
         //MAC 执行
 //        Process process = Runtime.getRuntime().exec(DX_PATH + classesDex.getAbsolutePath() + " " + classesJar.getAbsolutePath());
-        final String args = classesDex.getAbsolutePath() + " " + classesJar.getAbsolutePath();
+        String args = classesDex.getAbsolutePath() + File.separator + dexName + " " + classesJar.getAbsolutePath();
         String command = DX_PATH + args;
         if (isWindwos) {
             command = "cmd /c " + DX_PATH + args;
@@ -96,7 +187,7 @@ public class Main {
             throw new RuntimeException("dex error");
         }
 
-        if (!classesDex.exists()) makeDecodeDex();
+        if (!classesDex.exists()) makeDecodeDex(jarPath, jarName, dexPath, dexPath);
         System.out.println("makeDecodeDex--ok");
         count++;
     }
@@ -108,7 +199,7 @@ public class Main {
         System.out.println("encryptApkAllDex start");
         File apkFile = new File("app/build/outputs/apk/debug/app-debug.apk");
         File apkTemp = new File("app/build/outputs/apk/debug/temp");
-        Zip.unZip(apkFile, apkTemp);
+        Zip.unZip(apkFile, apkTemp, true);
         //只要dex文件拿出来加密
         File[] dexFiles = apkTemp.listFiles(new FilenameFilter() {
             @Override
