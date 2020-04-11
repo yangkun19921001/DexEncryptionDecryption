@@ -118,7 +118,8 @@ public class Main {
          * 第三个参数指定在 temp 下执行打包
          *
          */
-        final Process process = Runtime.getRuntime().exec(JAVA_HOME + "jar -cvfM classes.jar .", null, new File("/Users/devyk/Data/Project/sample/github_code/DexEncryptionDecryption/proxy_tools/temp"));
+        File curLocation = new File("proxy_tools/temp");
+        final Process process = Runtime.getRuntime().exec(JAVA_HOME + "jar -cvfM classes.jar .", null, curLocation.getAbsoluteFile());
         process.waitFor();
         if (process.exitValue() != 0) {
             throw new RuntimeException("make jar error");
