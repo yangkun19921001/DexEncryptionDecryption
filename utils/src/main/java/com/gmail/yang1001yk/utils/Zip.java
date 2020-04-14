@@ -1,4 +1,4 @@
-package com.example.proxy_tools;
+package com.gmail.yang1001yk.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,10 +11,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-
 public class Zip {
 
-    private static void deleteFile(File file){
+    public static void deleteFile(File file){
         if (file.isDirectory()){
             File[] files = file.listFiles();
             for (File f: files) {
@@ -30,9 +29,11 @@ public class Zip {
      * @param zip
      * @param dir
      */
-    public static void unZip(File zip, File dir) {
+    public static void unZip(File zip, File dir,boolean isDel) {
         try {
-            deleteFile(dir);
+            if (isDel){
+                deleteFile(dir);
+            }
             ZipFile zipFile = new ZipFile(zip);
             //zip文件中每一个条目
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -138,5 +139,5 @@ public class Zip {
         fis.close();
         zos.closeEntry();
     }
-
 }
+

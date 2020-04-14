@@ -1,5 +1,4 @@
-package com.example.proxy_core;
-
+package com.gmail.yang1001yk.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -14,7 +13,7 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * @Description: AES算法封装
  */
-public class EncryptUtil {
+public class EncryptUtil{
 
     /**
      * 加密算法
@@ -223,7 +222,7 @@ public class EncryptUtil {
         String tmp = "";
         for (int n = 0; n < bytes.length; n++) {
             // 整数转成十六进制表示
-            tmp = (Integer.toHexString(bytes[n] & 0XFF));
+            tmp = (java.lang.Integer.toHexString(bytes[n] & 0XFF));
             if (tmp.length() == 1) {
                 sb.append("0");
             }

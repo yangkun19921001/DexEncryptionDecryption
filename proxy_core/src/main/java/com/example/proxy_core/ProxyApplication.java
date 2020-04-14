@@ -10,6 +10,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.gmail.yang1001yk.utils.EncryptUtil;
+import com.gmail.yang1001yk.utils.Zip;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -56,9 +59,10 @@ public class ProxyApplication extends Application {
         //进行解密（最好做MD5文件校验）
         if(!dexDir.exists() || dexDir.list().length==0){
             //把apk解压到appDir
-            Zip.unZip(apkFile,appDir);
+            Zip.unZip(apkFile,appDir,false);
             //获取目录下所有的文件
             File[] files=appDir.listFiles();
+//                        EncryptPKCS7Core encrypt = new EncryptPKCS7Core();
             for (File file : files) {
                 String name=file.getName();
                 if(name.endsWith(".dex") && !TextUtils.equals(name,"classes.dex")){
@@ -66,14 +70,14 @@ public class ProxyApplication extends Application {
                         //读取文件内容
                         byte[] bytes= ProxyUtils.getBytes(file);
                         //5. 解密 dex
-                        byte[] decrypt = EncryptUtil.decrypt(bytes,EncryptUtil.ivBytes);
+                        byte[] decrypt = EncryptUtil.decrypt(bytes, EncryptUtil.ivBytes);
+//                        byte[] decrypt = encrypt.decrypt(bytes);
                         //写到指定的目录
                         FileOutputStream fos=new FileOutputStream(file);
                         fos.write(decrypt);
                         fos.flush();
                         fos.close();
                         dexFiles.add(file);
-
                     }catch (Exception e){
                         e.printStackTrace();
                     }
@@ -84,19 +88,14 @@ public class ProxyApplication extends Application {
                 dexFiles.add(file);
             }
         }
-
         try{
             //6.把解密后的文件加载到系统
             loadDex(dexFiles,versionDir);
-
             endTime = SystemClock.currentThreadTimeMillis() - startTime;
             Log.d(TAG,"解密完成! 共耗时：" + endTime +" ms");
-
         }catch (Exception e){
             e.printStackTrace();
         }
-
-
     }
 
     private void loadDex(List<File> dexFiles, File versionDir) throws Exception{

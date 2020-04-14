@@ -9,11 +9,9 @@ gradle.projectsEvaluated {
 
 // tag::jar[]
 jar {
-    baseName = 'proxy_tools'
-    version =  '0.0.0'
+    baseName = 'utils'
+    version =  '0.1.0'
     manifest {
-        attributes 'Main-Class': 'com.example.proxy_tools.Main', 'Implementation-Title': 'proxy_tools',
-                'Implementation-Version': version
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
@@ -52,5 +50,5 @@ configurations.all {
 dependencies {
     testImplementation 'junit:junit:4.12'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation project(path: ':utils')
 }
+
