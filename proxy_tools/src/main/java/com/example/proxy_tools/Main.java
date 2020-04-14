@@ -9,7 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
@@ -46,7 +45,13 @@ public class Main {
 //        System.getProperties().list(System.out);
 //        System.getenv("JAVA_HOME");
 //        String path = System.getenv("PATH");
-        JAVA_HOME = System.getenv("JAVA_HOME") + File.separator + "bin" + File.separator;
+        String check_java_home = System.getenv("JAVA_HOME");
+        if (check_java_home != null) {
+            JAVA_HOME = System.getenv("JAVA_HOME") + File.separator + "bin" + File.separator;//FIXME !!  WTF is use "System.getenv("JAVA_HOME") + File.separator + "bin" + File.separator" MAC OSX show /Applications/Android\ Studio.app/Contents/jre/jdk/Contents/Home//bin/ <-- ?? //
+            if (JAVA_HOME.contains("Android Studio.app")) {//FIXME WTF MAC OSX can not use Android Studio.app !! must use Android\ Studio.app !!!
+                JAVA_HOME = JAVA_HOME.replace("Android Studio.app", "Android\\ Studio.app");
+            }
+        }
         final String osname = System.getProperty("os.name").toLowerCase();
         if (osname.contains("windows")) {
             isWindwos = true;
@@ -58,12 +63,12 @@ public class Main {
         /**
          * 1. 多个 jar 合并在一起，目的是制作 dex 文件
          */
-        mergeJar();
+        mergeProxyCoreDependencieslibrary();
 
         /**
          * 1.制作只包含解密代码的dex文件
          */
-        makeDecodeDex("proxy_tools/temp/classes.jar", "classes.jar", "proxy_tools/temp/", "classes.dex");
+        makeDecodeDex("proxy_tools/temp/classes.jar", "proxy_tools/temp/");
 
         /**
          * 2.加密APK中所有的dex文件
@@ -91,23 +96,23 @@ public class Main {
      * @throws IOException
      * @throws InterruptedException
      */
-    private static void mergeJar() throws IOException, InterruptedException {
+    private static void mergeProxyCoreDependencieslibrary() throws IOException, InterruptedException {
         System.out.println("start merge jar");
 //        File file = new File("proxy_tools/temp/");
-        File file = new File(File.separator + "proxy_tools" + File.separator + "temp" + File.separator);
-        if (file.exists())
-            file.delete();
-        file.mkdir();
-        Path currentrelativepath = Paths.get("");
-
-        File projectpath = new File(currentrelativepath.toAbsolutePath().toString());
-        File curLocation = new File(projectpath + File.separator + "proxy_tools" + File.separator + "temp");
+        File processingtemp = new File(File.separator + "proxy_tools" + File.separator + "temp" + File.separator);
+        if (processingtemp.exists())
+            processingtemp.delete();
+        processingtemp.mkdir();
         //Ref : https://stackoverflow.com/questions/4871051/getting-the-current-working-directory-in-java
-
+        final File projectpath = new File(Paths.get("").toAbsolutePath().toString());
+        processingtemp = new File(projectpath + File.separator + "proxy_tools" + File.separator + "temp" + File.separator);
+        if (!processingtemp.exists()) {
+            processingtemp.mkdir();
+        }
         /**
          * 1.1 解压 dependencies 的 aar / jar
          */
-        unZipFile(projectpath + File.separator + "utils" + File.separator + "build" + File.separator + "libs" + File.separator + "utils-0.1.0.jar", projectpath + File.separator + "proxy_tools" + File.separator + "temp" + File.separator);
+        unZipFile(projectpath + File.separator + "utils" + File.separator + "build" + File.separator + "libs" + File.separator + "utils-0.1.0.jar", processingtemp.getCanonicalPath());
 
         /**
          * 1.2. 解压 core 库
@@ -132,13 +137,16 @@ public class Main {
          * #!/bin/bash
          *
          * echo "start make jar"
-         *
          * jar -cvfM classes.jar .
+         * 將 foo/ 目錄中的所有檔案歸檔至 'classes.jar' 中:
+         * jar cvfm classes.jar mymanifest -C foo/ . <--- 後面 .
          *
          * echo "make jar successful"
          */
-        //Ref : https://stackoverflow.com/questions/22414646/cannot-run-program-when-using-runtime-exec-with-spaces-in-program-filename
-        final Process process = Runtime.getRuntime().exec(JAVA_HOME + "jar -cvfM classes.jar .", null, curLocation.getAbsoluteFile());
+        //Ref : https://stackoverflow.com/questions/12517437/using-runtime-getruntime-exec-in-mac-os-causes-error/12517489#12517489
+        final String clazzsfolders = processingtemp.getAbsoluteFile().getAbsolutePath();
+        String command = "jar cvfM " + processingtemp.getCanonicalPath() + File.separator + "classes.jar -C " + clazzsfolders + " .";
+        final Process process = Runtime.getRuntime().exec(command);
         process.waitFor();
         if (process.exitValue() != 0) {
             throw new RuntimeException("make jar error");
@@ -161,22 +169,20 @@ public class Main {
     /**
      * 1.制作只包含解密代码的dex文件
      */
-    public static void makeDecodeDex(String jarPath, String jarName, String dexPath, String dexName) throws IOException, InterruptedException {
+    public static void makeDecodeDex(String jarPath, String dexPath) throws IOException, InterruptedException {
         if (count >= 2) return;
         System.out.println("makeDecodeDex start");
         File classesJar = new File(jarPath);
-        File classesDex = new File(dexPath);
-        System.out.println("classesJar : " + classesJar.getAbsolutePath() + "_____ : " + classesJar.exists());
-        System.out.println("classesDex : " + classesDex.getAbsolutePath() + "_____ : " + classesDex.exists());
-        System.out.println("makeDecodeDex checkFile");
-        checkFile(classesJar, classesDex);
+        File processinfolders = new File(dexPath);
+        checkFile(classesJar, processinfolders);
+        String classesDex = processinfolders + File.separator + "classes.dex";
         //dx --dex --output out.dex in.jar
         //dx --dex --output D:\Downloads\android_space\DexDEApplication\proxy_tools\temp\classes.dex D:\Downloads\android_space\DexDEApplication\proxy_tools\temp\classes.jar
         //       Windows 执行
 //         Process process = Runtime.getRuntime().exec("cmd /c dx --dex --output " + classesDex.getAbsolutePath()+ " " + classesJar.getAbsolutePath());
         //MAC 执行
 //        Process process = Runtime.getRuntime().exec(DX_PATH + classesDex.getAbsolutePath() + " " + classesJar.getAbsolutePath());
-        String args = classesDex.getAbsolutePath() + File.separator + dexName + " " + classesJar.getAbsolutePath();
+        String args = classesDex + " " + classesJar.getAbsolutePath();
         String command = DX_PATH + args;
         if (isWindwos) {
             command = "cmd /c " + DX_PATH + args;
@@ -186,8 +192,7 @@ public class Main {
         if (process.exitValue() != 0) {
             throw new RuntimeException("dex error");
         }
-
-        if (!classesDex.exists()) makeDecodeDex(jarPath, jarName, dexPath, dexPath);
+        if (!processinfolders.exists()) makeDecodeDex(jarPath, dexPath);
         System.out.println("makeDecodeDex--ok");
         count++;
     }
