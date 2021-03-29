@@ -288,3 +288,7 @@ apksigner sign  --ks jks文件地址 --ks-key-alias 别名 --ks-pass pass:jsk密
 其实原理就是把主要代码通过命令 *dx* 生成 dex 文件，然后把加密后的 dex 合并在代理 class.dex 中。这样虽然还是能看见代理中的代码，但是主要代码已经没有暴露出来了，就已经实现了我们想要的效果。如果封装的好的话（JNI 中实现主要解密代码），基本上就哈也看不见了。ClassLoader 还是很重要的，热修复跟热加载都是这原理。学到这里 DEX 加解密已经学习完了，如果想看自己试一试可以参考我的代码
 
 [代码传送阵](<https://github.com/yangkun19921001/DexEncryptionDecryption>)
+
+**如何学习本项目:**
+
+![](https://devyk.oss-cn-qingdao.aliyuncs.com/blog/20200321010522.gif)
